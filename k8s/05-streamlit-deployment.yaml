@@ -1,0 +1,54 @@
+# ========================================================
+# Tier 1: Streamlit Clinical UI (User-Facing NodePort Service)
+# ========================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cardiopulse-ui-deployment
+  namespace: cardiopulse-prod
+  labels:
+    app: cardiopulse-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cardiopulse-ui
+  template:
+    metadata:
+      labels:
+        app: cardiopulse-ui
+    spec:
+      containers:
+      - name: ui-container
+        image: cardiopulse-ui:v1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8501
+        env:
+        - name: GATEWAY_URL
+          valueFrom:
+            configMapKeyRef:
+              name: cardiopulse-config
+              key: GATEWAY_URL
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "200Mi"
+          limits:
+            cpu: "350m"
+            memory: "400Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cardiopulse-ui-svc
+  namespace: cardiopulse-prod
+spec:
+  type: NodePort
+  selector:
+    app: cardiopulse-ui
+  ports:
+  - protocol: TCP
+    port: 8501
+    targetPort: 8501
+    nodePort: 31500

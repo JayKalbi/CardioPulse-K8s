@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cardiopulse-config
+  namespace: cardiopulse-prod
+data:
+  ML_ENGINE_URL: "http://cardiopulse-ml-engine-svc:5000"
+  GATEWAY_URL: "http://cardiopulse-gateway-svc:5000"
+  APP_ENV: "production"

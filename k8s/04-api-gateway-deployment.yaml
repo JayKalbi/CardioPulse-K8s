@@ -1,0 +1,59 @@
+# ========================================================
+# Tier 2: API Gateway / Orchestrator (Internal ClusterIP)
+# ========================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cardiopulse-gateway-deployment
+  namespace: cardiopulse-prod
+  labels:
+    app: cardiopulse-gateway
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cardiopulse-gateway
+  template:
+    metadata:
+      labels:
+        app: cardiopulse-gateway
+    spec:
+      containers:
+      - name: gateway-container
+        image: cardiopulse-gateway:v1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5000
+        env:
+        - name: ML_ENGINE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: cardiopulse-config
+              key: ML_ENGINE_URL
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "100Mi"
+          limits:
+            cpu: "200m"
+            memory: "250Mi"
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cardiopulse-gateway-svc
+  namespace: cardiopulse-prod
+spec:
+  type: ClusterIP
+  selector:
+    app: cardiopulse-gateway
+  ports:
+  - protocol: TCP
+    port: 5000
+    targetPort: 5000
