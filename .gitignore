@@ -36,3 +36,12 @@ venv.bak/
 # OS
 .DS_Store
 Thumbs.db
+
+# Node / Web Dashboard
+node_modules/
+**/node_modules/
+.npm
+dist/
+build/
+.env.local
+.env.*.local

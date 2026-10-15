@@ -15,6 +15,7 @@ ML_ENGINE_URL = os.environ.get("ML_ENGINE_URL", "http://cardiopulse-ml-engine-sv
 
 @app.route("/", methods=["GET"])
 @app.route("/healthz", methods=["GET"])
+@app.route("/api/healthz", methods=["GET"])
 def health_check():
     # Probe upstream ML Engine to evaluate end-to-end cluster health
     upstream_status = "unreachable"
@@ -73,4 +74,5 @@ def triage():
         return jsonify({"error": f"Internal gateway error: {str(e)}"}), 500
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
