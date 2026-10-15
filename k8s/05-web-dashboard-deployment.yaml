@@ -1,0 +1,48 @@
+# ========================================================
+# Tier 1: Modern Web Dashboard (Custom Standout UI)
+# ========================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cardiopulse-web-dashboard-deployment
+  namespace: cardiopulse-prod
+  labels:
+    app: cardiopulse-web-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cardiopulse-web-dashboard
+  template:
+    metadata:
+      labels:
+        app: cardiopulse-web-dashboard
+    spec:
+      containers:
+      - name: web-dashboard-container
+        image: cardiopulse-web-dashboard:v1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "64Mi"
+          limits:
+            cpu: "200m"
+            memory: "128Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cardiopulse-web-dashboard-svc
+  namespace: cardiopulse-prod
+spec:
+  type: NodePort
+  selector:
+    app: cardiopulse-web-dashboard
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+    nodePort: 32000
