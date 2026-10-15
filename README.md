@@ -59,7 +59,7 @@ git clone https://github.com/JayKalbi/CardioPulse-K8s.git
 cd CardioPulse-K8s
 ```
 
-### 2. Local Development (Without Kubernetes)
+### 2. Local Development (Without Docker or Kubernetes)
 
 You can run the full 3-tier microservice stack locally using Python and Node.js:
 
@@ -85,20 +85,46 @@ Open **`http://localhost:5173`** in your browser.
 
 ---
 
-### 3. Build & Load Container Images for Kubernetes
+### 3. Run with Docker Compose (Single Command)
+
+All 3 services can be built and orchestrated seamlessly using Docker Compose:
+
 ```powershell
-# Build Docker Images
+# Build and run all microservices in the background
+docker compose up -d
+
+# View live aggregate logs
+docker compose logs -f
+
+# Stop and remove containers
+docker compose down
+```
+Open **`http://localhost:8080`** in your browser.
+
+---
+
+### 4. Deploy to Kubernetes with Minikube
+
+#### Step 4.1: Build Container Images
+```powershell
 docker build -t cardiopulse-ml-engine:v1 ./services/ml-inference-engine
 docker build -t cardiopulse-gateway:v1 ./services/api-gateway
 docker build -t cardiopulse-web-dashboard:v1 ./services/web-dashboard
+```
 
-# Load into Minikube cluster
+#### Step 4.2: Start Minikube & Load Images
+```powershell
+# Start Minikube cluster using Docker driver
+minikube start --driver=docker
+
+# Load local Docker images into the Minikube cluster container cache
 minikube image load cardiopulse-ml-engine:v1
 minikube image load cardiopulse-gateway:v1
 minikube image load cardiopulse-web-dashboard:v1
 ```
 
-### 4. Deploy to Kubernetes
+#### Step 4.3: Apply Kubernetes Manifests
+Apply all manifests in sequence into the dedicated `cardiopulse-prod` namespace:
 ```powershell
 kubectl apply -f k8s/01-namespace.yaml
 kubectl apply -f k8s/02-configmap.yaml
@@ -108,9 +134,22 @@ kubectl apply -f k8s/05-web-dashboard-deployment.yaml
 kubectl apply -f k8s/06-hpa.yaml
 ```
 
-### 5. Access the Platform on Kubernetes
+#### Step 4.4: Verify Deployment Status
 ```powershell
+# Verify pods are in Running status
+kubectl get pods -n cardiopulse-prod -w
+
+# Check exposed services
+kubectl get svc -n cardiopulse-prod
+```
+
+#### Step 4.5: Access the Dashboard
+```powershell
+# Automatically expose and open in your default browser:
 minikube service cardiopulse-web-dashboard-svc -n cardiopulse-prod
+
+# Or via port-forwarding to localhost:8080:
+kubectl port-forward svc/cardiopulse-web-dashboard-svc 8080:80 -n cardiopulse-prod
 ```
 The browser will open displaying the interactive CardioPulse Clinical Intelligence Dashboard!
 

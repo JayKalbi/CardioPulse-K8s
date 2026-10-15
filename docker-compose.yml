@@ -1,0 +1,45 @@
+﻿version: "3.8"
+
+services:
+  ml-engine:
+    image: cardiopulse-ml-engine:v1
+    container_name: cardiopulse-ml-engine
+    networks:
+      cardiopulse-net:
+        aliases:
+          - ml-engine
+    expose:
+      - "5000"
+    restart: unless-stopped
+
+  api-gateway:
+    image: cardiopulse-gateway:v1
+    container_name: cardiopulse-api-gateway
+    environment:
+      - ML_ENGINE_URL=http://ml-engine:5000
+      - PORT=5000
+    networks:
+      cardiopulse-net:
+        aliases:
+          - cardiopulse-gateway-svc
+          - api-gateway
+    ports:
+      - "5000:5000"
+    depends_on:
+      - ml-engine
+    restart: unless-stopped
+
+  web-dashboard:
+    image: cardiopulse-web-dashboard:v1
+    container_name: cardiopulse-web-dashboard
+    networks:
+      - cardiopulse-net
+    ports:
+      - "8080:80"
+    depends_on:
+      - api-gateway
+    restart: unless-stopped
+
+networks:
+  cardiopulse-net:
+    driver: bridge
